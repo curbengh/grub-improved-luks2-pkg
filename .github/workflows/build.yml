@@ -1,0 +1,66 @@
+name: Build
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    outputs:
+      upstream_ver: ${{ steps.upstream-ver.outputs.upstream_ver }}
+      repo_ver: ${{ steps.repo-ver.outputs.repo_ver }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check latest tag
+        id: repo-ver
+        run: |
+          repo_ver="$(git tag --sort=committerdate | tail -1)"
+          echo "repo_ver=${repo_ver}" >> "$GITHUB_OUTPUT"
+      - name: Clone repo
+        run: |
+          git clone 'https://aur.archlinux.org/grub-improved-luks2-git.git'
+      - name: Check upstream version
+        id: upstream-ver
+        working-directory: ./grub-improved-luks2-git
+        run: |
+          pkgver="$(grep -oP '(?<=pkgver=).+' './PKGBUILD')"
+          pkgrel="$(grep -oP '(?<=pkgrel=)[\d]+' './PKGBUILD')"
+          echo "upstream_ver=${pkgver}-${pkgrel}" >> "$GITHUB_OUTPUT"
+  build_and_release:
+    if: needs.test.outputs.upstream_ver != needs.test.outputs.repo_ver
+    needs: test
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: Enable root to run makepkg
+        run: |
+          sed -i '/E_ROOT/d' /usr/bin/makepkg
+      - name: Install git
+        run: |
+          pacman -Syu --noconfirm git
+      - name: Clone repo
+        run: |
+          git clone 'https://aur.archlinux.org/grub-improved-luks2-git.git'
+      - name: Build
+        working-directory: ./grub-improved-luks2-git
+        run: |
+          makepkg -s --noconfirm
+      - name: "Upload Artifact"
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: ./grub-improved-luks2-git/*.zst
+          retention-days: 30
+      - uses: ncipollo/release-action@v1
+        with:
+          tag: ${{needs.test.outputs.upstream_ver}}
+          body: ${{needs.test.outputs.upstream_ver}}
+          commit: main
+          makeLatest: true
+          artifacts: ./grub-improved-luks2-git/*.zst
