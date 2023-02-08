@@ -13,6 +13,8 @@ jobs:
       repo_ver: ${{ steps.repo-ver.outputs.repo_ver }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Check latest tag
         id: repo-ver
         run: |
