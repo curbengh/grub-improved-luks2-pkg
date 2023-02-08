@@ -49,7 +49,7 @@ jobs:
           git clone 'https://aur.archlinux.org/bdf-unifont.git'
           cd bdf-unifont/
           gpg --recv-key 95D2E9AB8740D8046387FD151A09227B1F435A33
-          makepkg -si
+          makepkg -si --noconfirm
       - name: Clone repo
         run: |
           git clone 'https://aur.archlinux.org/grub-improved-luks2-git.git'
