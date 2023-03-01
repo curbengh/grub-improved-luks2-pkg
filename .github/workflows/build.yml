@@ -65,12 +65,6 @@ jobs:
           find "./" -maxdepth 1 -type f -name "*.zst" | while read FILE; do
             sha256sum "$FILE" > "${FILE}.sha256sum"
           done;
-      - name: "Upload Artifact"
-        uses: actions/upload-artifact@v3
-        with:
-          name: artifacts
-          path: ./grub-improved-luks2-git/*.zst
-          retention-days: 30
       - uses: ncipollo/release-action@v1
         with:
           tag: ${{needs.test.outputs.upstream_ver}}
