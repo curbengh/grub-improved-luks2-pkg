@@ -62,13 +62,11 @@ jobs:
       - name: Generate hashsums
         working-directory: ./grub-improved-luks2-git
         run: |
-          find "./" -maxdepth 1 -type f -name "*.zst" | while read FILE; do
-            sha256sum "$FILE" > "${FILE}.sha256sum"
-          done;
+          sha256sum *.zst > SHA256SUMS
       - uses: ncipollo/release-action@v1
         with:
           tag: ${{needs.test.outputs.upstream_ver}}
           body: ${{needs.test.outputs.upstream_ver}}
           commit: main
           makeLatest: true
-          artifacts: "./grub-improved-luks2-git/*.zst,./grub-improved-luks2-git/*.sha256sum"
+          artifacts: "./grub-improved-luks2-git/*.zst,./grub-improved-luks2-git/SHA256SUMS"
