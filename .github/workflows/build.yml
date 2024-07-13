@@ -9,29 +9,31 @@ jobs:
   test:
     runs-on: ubuntu-latest
     outputs:
+      build_exist: ${{ steps.build-exist.outputs.build_exist }}
       upstream_ver: ${{ steps.upstream-ver.outputs.upstream_ver }}
-      repo_ver: ${{ steps.repo-ver.outputs.repo_ver }}
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Check latest tag
-        id: repo-ver
+      - name: Get repo tags
         run: |
-          repo_ver="$(git tag --sort=committerdate | tail -1)"
-          echo "repo_ver=${repo_ver}" >> "$GITHUB_OUTPUT"
-      - name: Clone repo
-        run: |
-          git clone 'https://aur.archlinux.org/grub-improved-luks2-git.git'
-      - name: Check upstream version
+          repo_tags=$(curl -sSL "https://api.github.com/repos/$GITHUB_REPOSITORY/releases" | jq '.[].tag_name')
+          echo "repo_tags=$repo_tags" >> "$GITHUB_ENV"
+      - name: Get upstream version
         id: upstream-ver
-        working-directory: ./grub-improved-luks2-git
         run: |
-          pkgver="$(grep -oP '(?<=pkgver=).+' './PKGBUILD')"
-          pkgrel="$(grep -oP '(?<=pkgrel=)[\d]+' './PKGBUILD')"
-          echo "upstream_ver=${pkgver}-${pkgrel}" >> "$GITHUB_OUTPUT"
+          curl -SL 'https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=grub-improved-luks2-git' -o "PKGBUILD"
+          pkgver=$(grep -oP "^pkgver='?\K[\d\.]+" './PKGBUILD')
+          pkgrel="$(grep -oP "^pkgrel=\K\d+" './PKGBUILD')"
+          echo "upstream_ver=${pkgver}-${pkgrel}" >> "$GITHUB_ENV"
+          echo "upstream_ver=$upstream_ver" >> "$GITHUB_OUTPUT"
+      - name: Check if build exist
+        id: build-exist
+        run: |
+          if echo "$repo_tags" | grep -q "$upstream_ver"; then
+            echo "build_exist=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "build_exist=false" >> "$GITHUB_OUTPUT"
+          fi
   build_and_release:
-    if: needs.test.outputs.upstream_ver != needs.test.outputs.repo_ver
+    if: needs.test.outputs.build_exist == 'false'
     needs: test
     runs-on: ubuntu-latest
     container: archlinux:base-devel
@@ -39,7 +41,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Enable root to run makepkg
         run: |
           sed -i '/E_ROOT/d' /usr/bin/makepkg
