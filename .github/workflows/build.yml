@@ -41,6 +41,7 @@ jobs:
       - name: Enable root to run makepkg
         run: |
           sed -i '/E_ROOT/d' /usr/bin/makepkg
+          sed -i 's/ debug / !debug /g' /etc/makepkg.conf
       - name: Install git
         run: |
           pacman -Syu --noconfirm git
