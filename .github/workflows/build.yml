@@ -13,9 +13,14 @@ jobs:
       upstream_ver: ${{ steps.upstream-ver.outputs.upstream_ver }}
     steps:
       - name: Get repo tags
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          repo_tags=$(curl -sSL "https://api.github.com/repos/$GITHUB_REPOSITORY/releases" | jq '.[].tag_name')
-          echo "repo_tags=$repo_tags" >> "$GITHUB_ENV"
+          {
+            echo 'repo_tags<<EOF'
+            gh api /repos/$GITHUB_REPOSITORY/releases | jq '.[].tag_name'
+            echo EOF
+          } >> "$GITHUB_ENV"
       - name: Get upstream version
         id: upstream-ver
         run: |
