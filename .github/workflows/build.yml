@@ -64,7 +64,7 @@ jobs:
       - name: Get development version
         working-directory: ./grub-improved-luks2-git
         run: |
-          echo "pkgver=$(grep -oP '^pkgver = \K[\w.-]+' 'pkg/grub-improved-luks2-git/.PKGINFO'" >> "$GITHUB_ENV"
+          echo "pkgver=$(grep -oP '^pkgver = \K[\w.-]+' 'pkg/grub-improved-luks2-git/.PKGINFO')" >> "$GITHUB_ENV"
       - name: Generate hashsums
         working-directory: ./grub-improved-luks2-git
         run: |
