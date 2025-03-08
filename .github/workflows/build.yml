@@ -64,16 +64,15 @@ jobs:
       - name: Get development version
         working-directory: ./grub-improved-luks2-git
         run: |
-          . "./PKGBUILD"
-          echo "dev_ver=${pkgver}-${pkgrel}" >> "$GITHUB_ENV"
+          echo "pkgver=$(grep -oP '^pkgver = \K[\w.-]+' 'pkg/grub-improved-luks2-git/.PKGINFO'" >> "$GITHUB_ENV"
       - name: Generate hashsums
         working-directory: ./grub-improved-luks2-git
         run: |
           sha256sum *.zst > SHA256SUMS
       - uses: ncipollo/release-action@v1
         with:
-          tag: ${{ env.dev_ver }}
-          body: ${{ env.dev_ver }}
+          tag: ${{ env.pkgver }}
+          body: ${{ env.pkgver }}
           commit: main
           makeLatest: true
           artifacts: "./grub-improved-luks2-git/*.zst,./grub-improved-luks2-git/SHA256SUMS"
