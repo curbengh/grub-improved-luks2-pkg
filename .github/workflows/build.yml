@@ -6,13 +6,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
-    container: archlinux:base-devel
-    timeout-minutes: 60
     outputs:
       repo_tags: ${{ steps.repo-tags.outputs.repo_tags }}
-      pkg_ver: ${{ steps.pkg-ver.outputs.pkg_ver }}
+      upstream_ver: ${{ steps.upstream-ver.outputs.upstream_ver }}
     steps:
       - name: Get repo tags
         id: repo-tags
@@ -24,6 +22,21 @@ jobs:
             gh api /repos/$GITHUB_REPOSITORY/releases | jq '.[].tag_name'
             echo EOF
           } >> "$GITHUB_OUTPUT"
+      - name: Get upstream version
+        id: upstream-ver
+        run: |
+          curl -SL 'https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=grub-improved-luks2-git' -o "PKGBUILD"
+          . "PKGBUILD"
+          echo "upstream_ver=${pkgver}-${pkgrel}" >> "$GITHUB_OUTPUT"
+  build_and_release:
+    needs: test
+    # if: ${{ ! contains(needs.test.outputs.repo_tags, needs.test.outputs.upstream_ver) }}
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    steps:
       - uses: actions/checkout@v4
       - name: Enable root to run makepkg
         run: |
@@ -47,24 +60,16 @@ jobs:
           makepkg -s --noconfirm
       - name: Get development version
         working-directory: ./grub-improved-luks2-git
-        id: pkg-ver
         run: |
-          echo "pkg_ver=$(grep -oP '^pkgver = \K[\w.-]+' 'pkg/grub-improved-luks2-git/.PKGINFO')" >> "$GITHUB_OUTPUT"
+          echo "pkgver=$(grep -oP '^pkgver = \K[\w.-]+' 'pkg/grub-improved-luks2-git/.PKGINFO')" >> "$GITHUB_ENV"
       - name: Generate hashsums
         working-directory: ./grub-improved-luks2-git
         run: |
           sha256sum *.zst > SHA256SUMS
-  release:
-    needs: build
-    if: ${{ ! contains(needs.build.outputs.repo_tags, needs.build.outputs.pkg_ver) }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
       - uses: ncipollo/release-action@v1
         with:
-          tag: ${{ needs.build.outputs.pkg_ver }}
-          body: ${{ needs.build.outputs.pkg_ver }}
+          tag: ${{ env.pkgver }}
+          body: ${{ env.pkgver }}
           commit: main
           makeLatest: true
           artifacts: "./grub-improved-luks2-git/*.zst,./grub-improved-luks2-git/SHA256SUMS"
