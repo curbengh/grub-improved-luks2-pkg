@@ -1,0 +1,10 @@
+--- a/argon_3.patch
++++ b/argon_3.patch
+@@ -36,6 +36,7 @@
+  * jsmn::
+  * minilzo::
+  * libtasn1::
++ * libgcrypt::
+  @end menu
+
+ +@node Argon2

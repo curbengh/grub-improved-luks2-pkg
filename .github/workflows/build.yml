@@ -56,6 +56,9 @@ jobs:
       - name: Clone repo
         run: |
           git clone 'https://aur.archlinux.org/grub-improved-luks2-git.git'
+      - name: Fix argon_3.patch
+        run: |
+          patch grub-improved-luks2-git/argon_3.patch < fix-argon_3.patch
       - name: Build
         working-directory: ./grub-improved-luks2-git
         run: |
