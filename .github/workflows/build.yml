@@ -60,12 +60,8 @@ jobs:
         working-directory: ./grub-improved-luks2-git
         run: |
           sed -ir 's|https:\/\/git\.savannah\.gnu\.org\/git\/grub\.git|https://github.com/curbengh/grub-mirror|' "PKGBUILD"
-          sed -i 's|cd grub$|cd grub-mirror|' "PKGBUILD"
-          sed -i 's|"$srcdir"/grub/|"$srcdir"/grub-mirror/|' "PKGBUILD"
           sed -ir 's|https:\/\/git\.savannah\.gnu\.org\/git\/grub-extras\.git|https://github.com/curbengh/grub-extras-mirror|' "PKGBUILD"
-          sed -i 's|"$srcdir"/grub-extras|"$srcdir"/grub-extras-mirror|' "PKGBUILD"
           sed -ir 's|https:\/\/git\.savannah\.gnu\.org\/git\/gnulib\.git|https://github.com/curbengh/gnulib-mirror|' "PKGBUILD"
-          sed -i 's|"$srcdir"/gnulib|"$srcdir"/gnulib-mirror|' "PKGBUILD"
       - name: Build
         working-directory: ./grub-improved-luks2-git
         run: |
