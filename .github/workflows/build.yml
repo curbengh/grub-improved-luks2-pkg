@@ -27,7 +27,7 @@ jobs:
         run: |
           curl -SL 'https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=grub-improved-luks2-git' -o "PKGBUILD"
           . "PKGBUILD"
-          git clone "https://git.savannah.gnu.org/git/grub.git"
+          git clone "https://github.com/curbengh/grub-mirror"
           cd "grub/"
           echo "upstream_ver=$(git describe --long --tags --always | sed 's/^grub.//;s/\([^-]*-g\)/r\1/;s/-/./g')-${pkgrel}" >> "$GITHUB_OUTPUT"
   build_and_release:
@@ -56,6 +56,12 @@ jobs:
       - name: Clone repo
         run: |
           git clone 'https://aur.archlinux.org/grub-improved-luks2-git.git'
+      - name: Switch to mirror
+        working-directory: ./grub-improved-luks2-git
+        run: |
+          sed -ir 's|https:\/\/git\.savannah\.gnu\.org\/git\/grub\.git|https://github.com/curbengh/grub-mirror|' "PKGBUILD"
+          sed -ir 's|https:\/\/git\.savannah\.gnu\.org\/git\/grub-extras\.git|https://github.com/curbengh/grub-extras-mirror|' "PKGBUILD"
+          sed -ir 's|https:\/\/git\.savannah\.gnu\.org\/git\/gnulib\.git|https://github.com/curbengh/gnulib-mirror|' "PKGBUILD"
       - name: Build
         working-directory: ./grub-improved-luks2-git
         run: |
