@@ -24,6 +24,8 @@ jobs:
           } >> "$GITHUB_OUTPUT"
       - name: Get upstream version
         id: upstream-ver
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           curl -SL 'https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=grub-improved-luks2-git' -o "PKGBUILD"
           . "PKGBUILD"
