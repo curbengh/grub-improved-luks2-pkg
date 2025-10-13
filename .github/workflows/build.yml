@@ -30,9 +30,9 @@ jobs:
           curl -SL 'https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=grub-improved-luks2-git' -o "PKGBUILD"
           . "PKGBUILD"
 
-          latest_tag="$(gh api /repos/$GITHUB_REPOSITORY/tags | jq -r '.[0].name')"
-          hash=$(gh api -H "Accept: application/vnd.github.sha" /repos/$GITHUB_REPOSITORY/commits/master)
-          count="$(gh api /repos/$GITHUB_REPOSITORY/compare/${latest_tag}...${hash} | jq '.total_commits')"
+          latest_tag="$(gh api /repos/curbengh/grub-mirror/tags | jq -r '.[0].name')"
+          hash=$(gh api -H "Accept: application/vnd.github.sha" /repos/curbengh/grub-mirror/commits/master)
+          count="$(gh api /repos/curbengh/grub-mirror/compare/${latest_tag}...${hash} | jq '.total_commits')"
           shorthash=$(printf "$hash" | grep -oE '^\w{9}')
 
           echo "upstream_ver=$(echo $latest_tag | sed 's/grub.//').r${count}.g${shorthash}-${pkgrel}" >> "$GITHUB_OUTPUT"
